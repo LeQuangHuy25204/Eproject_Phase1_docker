@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: eproject-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: eproject-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-admin123}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  auth:
+    build: ./auth
+    container_name: eproject-auth
+    env_file:
+      - ./.env
+    environment:
+      - PORT=${AUTH_PORT:-3000}
+      - MONGODB_AUTH_URI=${MONGODB_AUTH_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+    ports:
+      - "${AUTH_PORT:-3000}:${AUTH_PORT:-3000}"
+    depends_on:
+      - mongo
+
+  product:
+    build: ./product
+    container_name: eproject-product
+    env_file:
+      - ./.env
+    environment:
+      - PORT=${PRODUCT_PORT:-3001}
+      - MONGODB_PRODUCT_URI=${MONGODB_PRODUCT_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRY=${JWT_EXPIRY}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+    ports:
+      - "${PRODUCT_PORT:-3001}:${PRODUCT_PORT:-3001}"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  order:
+    build: ./order
+    container_name: eproject-order
+    env_file:
+      - ./.env
+    environment:
+      - PORT=${ORDER_PORT:-3002}
+      - MONGODB_ORDER_URI=${MONGODB_ORDER_URI}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+    ports:
+      - "${ORDER_PORT:-3002}:${ORDER_PORT:-3002}"
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: eproject-api-gateway
+    env_file:
+      - ./.env
+    environment:
+      - PORT=${API_GATEWAY_PORT:-3003}
+    ports:
+      - "${API_GATEWAY_PORT:-3003}:${API_GATEWAY_PORT:-3003}"
+    depends_on:
+      - auth
+      - product
+      - order
+
+volumes:
+  mongo-data:
+  rabbitmq-data:
