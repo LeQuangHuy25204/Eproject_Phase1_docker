@@ -52,8 +52,8 @@ JWT_SECRET=your_secret_key
 ```env
 MONGODB_PRODUCT_URI=mongodb://mongo:27017/product_db
 RABBITMQ_HOST=rabbitmq
-RABBITMQ_USER=admin
-RABBITMQ_PASS=admin123
+RABBITMQ_USER=your_user
+RABBITMQ_PASS=your_pass
 JWT_SECRET=your_secret_key
 ```
 
@@ -61,8 +61,8 @@ JWT_SECRET=your_secret_key
 ```env
 MONGODB_ORDER_URI=mongodb://mongo:27017/order_db
 RABBITMQ_HOST=rabbitmq
-RABBITMQ_USER=admin
-RABBITMQ_PASS=admin123
+RABBITMQ_USER=your_user
+RABBITMQ_PASS=your_pass
 ```
 
 3. **Start services:**
